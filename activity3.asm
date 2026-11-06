@@ -1,231 +1,168 @@
-DATA_SEG SEGMENT
-    title_msg    DB 'C P E 4 6 3 1','$'
-    course_msg   DB 'COMPUTER ORGANIZATION AND ARCHITECTURE','$'
-    mid_msg      DB 'W/','$'
-    lang_msg     DB 'ASSEMBLY LANGUAGE','$'
-    prog_msg     DB 'PROGRAMMING','$'
-    name_msg     DB 'Wilfred Justin D. Peteros','$'
-    section_msg  DB 'BSCpE - 4','$'
-DATA_SEG ENDS
+; ============================================================
+;  CPE 463 - Activity No. 3: Basic Assembly Graphics
+;  Colors (attribute = background*16 + foreground):
+;     00h black bg   10h blue bg   20h green bg
+;     40h red bg     60h brown bg  4Eh yellow text on red
+; ============================================================
  
-CODE_SEG SEGMENT
+; ---- Draw a filled rectangle: BOX attr, top, left, bottom, right
+BOX MACRO ATTR, TOP, LEFT, BOT, RIGHT
+    MOV     AX, 0600H        ; AH=06 scroll up, AL=0 -> fill whole window
+    MOV     BH, ATTR         ; color
+    MOV     CH, TOP          ; upper-left row
+    MOV     CL, LEFT         ; upper-left col
+    MOV     DH, BOT          ; lower-right row
+    MOV     DL, RIGHT        ; lower-right col
+    INT     10H
+ENDM
+ 
+CTEXT MACRO STR, ROW, LEFT, RIGHT, ATTR
+    MOV     SI, OFFSET STR
+    MOV     DH, ROW
+    MOV     CH, LEFT
+    MOV     CL, RIGHT
+    MOV     BL, ATTR
+    CALL    CPRINT
+ENDM
+ 
+DATA_SEG    SEGMENT
+    T1      DB 'C P E 4 6 3  1','$'
+    T2      DB 'COMPUTER ORGANIZATION AND ARCHITECTURE','$'
+    T3      DB 'W/','$'
+    T4      DB 'A S S E M B L Y   L A N G U A G E','$'
+    T5      DB 'P R O G R A M M I N G','$'
+    N1      DB 'Wilfred Justin','$'
+    N2      DB 'D. Peteros','$'
+    S1      DB 'BSCpE','$'
+    S2      DB '-4','$'
+DATA_SEG    ENDS
+ 
+CODE_SEG    SEGMENT
     ASSUME CS:CODE_SEG, DS:DATA_SEG
  
 START:
-    MOV AX, DATA_SEG
-    MOV DS, AX
+    MOV     AX, DATA_SEG
+    MOV     DS, AX
  
-    ; ------------------------------------------------
-    ; 1. CLEAR SCREEN (Dark Gray Background)
-    ; ------------------------------------------------
-    MOV AH, 06h
-    MOV AL, 00h
-    MOV BH, 80h      
-    MOV CX, 0000h
-    MOV DX, 184Fh    ; Max screen boundary (Row 24, Col 79)
-    INT 10h
+    ; ---- clear screen to black (whole 80x25)
+    MOV     AX, 0600H
+    MOV     BH, 07H
+    MOV     CX, 0000H
+    MOV     DX, 184FH
+    INT     10H
  
-    ; ------------------------------------------------
-    ; 2. TOP BANNER 
-    ; ------------------------------------------------
-    ; Shadow
-    MOV AH, 06h
-    MOV AL, 00h
-    MOV BH, 80h      
-    MOV CH, 01h      
-    MOV CL, 02h      
-    MOV DH, 05h      
-    MOV DL, 4Dh      
-    INT 10h
+    ; ---- TOP BANNER: blue frame + brown bar
+    BOX 10H, 0, 0, 4, 78
+    BOX 60H, 1, 1, 3, 77
  
-    ; Brown Foreground
-    MOV AH, 06h
-    MOV BH, 60h      
-    MOV CH, 01h      
-    MOV CL, 03h      
-    MOV DH, 04h      
-    MOV DL, 4Ch      
-    INT 10h
+    ; ---- MAIN PANEL
+    BOX 20H, 7, 2, 18, 78        ; green backdrop
+    BOX 10H, 9, 0, 20, 76        ; blue shadow (left + bottom)
+    BOX 40H, 8, 1, 19, 77        ; red panel (cols 1-77)
  
-    ; ------------------------------------------------
-    ; 3. MAIN CENTER RECTANGLE (Compressed Upward)
-    ; ------------------------------------------------
-    ; Shadow
-    MOV AH, 06h
-    MOV BH, 80h      
-    MOV CH, 07h      
-    MOV CL, 02h      
-    MOV DH, 14h      
-    MOV DL, 4Dh      
-    INT 10h
+    ; ---- green stripes (left and right)
+    BOX 20H, 9, 2, 18, 2
+    BOX 20H, 9, 4, 18, 4
+    BOX 20H, 9, 6, 18, 6
+    BOX 20H, 9, 8, 18, 8
+    BOX 20H, 9, 70, 18, 70
+    BOX 20H, 9, 72, 18, 72
+    BOX 20H, 9, 74, 18, 74
+    BOX 20H, 9, 76, 18, 76
  
-    ; Green Background Box 
-    MOV AH, 06h
-    MOV BH, 20h      
-    MOV CH, 08h      
-    MOV CL, 05h      
-    MOV DH, 13h      
-    MOV DL, 4Ah      
-    INT 10h
+    ; ---- bottom-left name box
+    BOX 10H, 23, 3, 24, 23       ; shadow
+    BOX 40H, 22, 2, 23, 22       ; red box (cols 2-22)
  
-    ; Brown Main Box 
-    MOV AH, 06h
-    MOV BH, 6Eh      
-    MOV CH, 09h      
-    MOV CL, 04h      
-    MOV DH, 14h      
-    MOV DL, 49h      
-    INT 10h
+    ; ---- bottom-right section box
+    BOX 10H, 23, 59, 24, 76      ; shadow
+    BOX 40H, 22, 57, 23, 75      ; red box (cols 57-75)
  
-    ; Left Green Vertical Stripes
-    MOV AH, 06h
-    MOV BH, 20h      
-    MOV CH, 09h      
-    MOV DH, 13h      
-    MOV CL, 06h      
-    MOV DL, 06h      
-    INT 10h
-    MOV CL, 08h      
-    MOV DL, 08h      
-    INT 10h
-    MOV CL, 0Ah      
-    MOV DL, 0Ah      
-    INT 10h
+    ; ---- main panel text, centered in cols 1-77
+    CTEXT T1, 9,  1, 77, 4EH
+    CTEXT T2, 11, 1, 77, 4EH
+    CTEXT T3, 13, 1, 77, 4EH
+    CTEXT T4, 15, 1, 77, 4EH
+    CTEXT T5, 17, 1, 77, 4EH
  
-    ; Right Green Vertical Stripes
-    MOV CL, 43h      
-    MOV DL, 43h
-    INT 10h
-    MOV CL, 45h      
-    MOV DL, 45h
-    INT 10h
-    MOV CL, 47h      
-    MOV DL, 47h
-    INT 10h
+    ; ---- bottom-left box text, centered in cols 2-22
+    CTEXT N1, 22, 2, 22, 4EH
+    CTEXT N2, 23, 2, 22, 4EH
  
-    ; ------------------------------------------------
-    ; 4. BOTTOM LEFT BOX (Name) - SAFELY WITHIN BOUNDS
-    ; Row 15h is left empty for spacing
-    ; ------------------------------------------------
-    ; Shadow
-    MOV AH, 06h
-    MOV BH, 80h      
-    MOV CH, 17h      
-    MOV CL, 05h      
-    MOV DH, 18h      
-    MOV DL, 20h      
-    INT 10h
+    ; ---- bottom-right box text, centered in cols 57-75
+    CTEXT S1, 22, 57, 75, 4EH
+    CTEXT S2, 23, 57, 75, 4EH
  
-    ; Brown Box 
-    MOV AH, 06h
-    MOV BH, 6Eh      
-    MOV CH, 16h      
-    MOV CL, 04h      
-    MOV DH, 17h      
-    MOV DL, 1Fh      
-    INT 10h
+    ; ---- park the cursor out of the way, wait for a key
+    MOV     AH, 2
+    MOV     BH, 0
+    MOV     DH, 24
+    MOV     DL, 79
+    INT     10H
  
-    ; ------------------------------------------------
-    ; 5. BOTTOM RIGHT BOX (Section) 
-    ; ------------------------------------------------
-    ; Shadow
-    MOV AH, 06h
-    MOV BH, 80h      
-    MOV CH, 17h      
-    MOV CL, 3Ah      
-    MOV DH, 18h      
-    MOV DL, 4Dh      
-    INT 10h
+    MOV     AH, 0
+    INT     16H
  
-    ; Brown Box 
-    MOV AH, 06h
-    MOV BH, 6Eh      
-    MOV CH, 16h      
-    MOV CL, 39h      
-    MOV DH, 17h      
-    MOV DL, 4Ch      
-    INT 10h
+    ; ---- restore text mode and exit
+    MOV     AX, 0003H
+    INT     10H
+    MOV     AH, 4CH
+    MOV     AL, 0
+    INT     21H
  
-    ; ------------------------------------------------
-    ; 6. SET CURSOR & PRINT TEXT 
-    ; ------------------------------------------------
-    ; Print Title
-    MOV AH, 02h      
-    MOV BH, 00h      
-    MOV DH, 0Ah      
-    MOV DL, 20h      
-    INT 10h
-    MOV AH, 09h      
-    LEA DX, title_msg
-    INT 21h
+; ------------------------------------------------------------
+; CPRINT: centers a string between two columns.
+;   SI = string offset ('$' ends), DH = row,
+;   CH = left col, CL = right col, BL = color attribute
+;   col = left + ((right - left + 1) - length) / 2
+; NOTE: BX is NOT touched here (BL holds the color!).
+; ------------------------------------------------------------
+CPRINT PROC NEAR
+    PUSH    SI                   ; remember start of string
+    XOR     DI, DI               ; DI = string length
+LEN_LP:
+    CMP     BYTE PTR [SI], '$'   ; end of string?
+    JE      GOT_LEN
+    INC     SI                   ; walk SI along the string
+    INC     DI                   ; count characters
+    JMP     LEN_LP
+GOT_LEN:
+    POP     SI                   ; SI back to start of string
+    MOV     AX, DI               ; AL = length
+    MOV     DL, CL
+    SUB     DL, CH
+    INC     DL                   ; DL = box width
+    SUB     DL, AL               ; DL = width - length
+    SHR     DL, 1                ; divide by 2
+    ADD     DL, CH               ; DL = starting column
+    CALL    PRINT
+    RET
+CPRINT ENDP
  
-    ; Print Course
-    MOV AH, 02h
-    MOV DH, 0Ch      
-    MOV DL, 11h      
-    INT 10h
-    MOV AH, 09h
-    LEA DX, course_msg
-    INT 21h
+; ------------------------------------------------------------
+; PRINT: SI = string offset ('$' ends), DH = row, DL = col,
+;        BL = color attribute
+; Writes each char with INT 10h/09h so the color is applied.
+; ------------------------------------------------------------
+PRINT PROC NEAR
+NEXT_CH:
+    LODSB                    ; AL = [SI], SI++
+    CMP     AL, '$'
+    JE      DONE
+    PUSH    AX
+    MOV     AH, 2            ; set cursor (DH,DL)
+    MOV     BH, 0
+    INT     10H
+    POP     AX
+    MOV     AH, 9            ; write char + attribute
+    MOV     BH, 0
+    MOV     CX, 1
+    INT     10H
+    INC     DL               ; next column
+    JMP     NEXT_CH
+DONE:
+    RET
+PRINT ENDP
  
-    ; Print "W/"
-    MOV AH, 02h
-    MOV DH, 0Eh      
-    MOV DL, 26h      
-    INT 10h
-    MOV AH, 09h
-    LEA DX, mid_msg
-    INT 21h
- 
-    ; Print Language
-    MOV AH, 02h
-    MOV DH, 10h      
-    MOV DL, 1Ch      
-    INT 10h
-    MOV AH, 09h
-    LEA DX, lang_msg
-    INT 21h
- 
-    ; Print Programming
-    MOV AH, 02h
-    MOV DH, 12h      
-    MOV DL, 22h      
-    INT 10h
-    MOV AH, 09h
-    LEA DX, prog_msg
-    INT 21h
- 
-    ; Print Name 
-    MOV AH, 02h
-    MOV DH, 16h      
-    MOV DL, 05h      
-    INT 10h
-    MOV AH, 09h
-    LEA DX, name_msg
-    INT 21h
- 
-    ; Print Section 
-    MOV AH, 02h
-    MOV DH, 16h      
-    MOV DL, 3Eh      
-    INT 10h
-    MOV AH, 09h
-    LEA DX, section_msg
-    INT 21h
- 
-    ; ------------------------------------------------
-    ; 7. RESET CURSOR & EXIT
-    ; Park the cursor at the absolute bottom left (18h)
-    ; so the DOS prompt doesn't overwrite your boxes
-    ; ------------------------------------------------
-    MOV AH, 02h
-    MOV DH, 18h
-    MOV DL, 00h
-    INT 10h
- 
-    MOV AH, 4Ch
-    MOV AL, 00h
-    INT 21h
- 
-CODE_SEG ENDS
-END START
+CODE_SEG    ENDS
+    END     START
