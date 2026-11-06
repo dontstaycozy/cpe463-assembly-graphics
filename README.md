@@ -1,17 +1,17 @@
 # CPE 463 - Activity No. 3: Basic Assembly Graphics
 
 ## Description
-This activity enables the students to create a simplified directive assembly program environment that would display graphical outputs[cite: 2].
+This activity enables the students to create a simplified directive assembly program environment that would display graphical outputs.
 
 ## Course Information
-* **Course:** CPE463 (Comp.Org with Assembly Lang.)[cite: 2]
+* **Course:** CPE463 (Comp.Org with Assembly Lang.)
 * **Topics Covered:** Basic Assembly[cite: 2]
 * **Name:** Wilfred Justin D. Peteros 
 * **Section:** BSCpE - 4
 
 ## Objectives
-* To develop an assembly program with simple programming structure[cite: 2].
-* To use clear screen and set cursor functions for graphical displays[cite: 2].
+* To develop an assembly program with simple programming structure.
+* To use clear screen and set cursor functions for graphical displays.
 
 ## How It Works
 This 16-bit DOS Assembly program utilizes low-level hardware interrupts to render a colorful text-mode user interface:
